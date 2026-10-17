@@ -15,6 +15,7 @@ export interface DuaMeta {
   source_type: SourceType
   reference: string      // e.g. "Al-Baqarah 2:201" or "Abu Dawud 5074"
   grading: Grading       // required when source_type === 'hadith'
+  sunnah_ref?: string    // optional explicit sunnah.com ref, e.g. "abudawud:5095"
   occasion: string       // when to recite
   tags: string[]
   based_on?: string
@@ -50,6 +51,62 @@ export function quranComUrl(reference: string): string | null {
   const surah = m[1]
   const ayah = m[2]
   return `https://quran.com/${surah}/${ayah}`
+}
+
+/** Map common English hadith collection names to sunnah.com slugs. */
+const SUNNAH_COLLECTION_SLUGS: Record<string, string> = {
+  'bukhari': 'bukhari',
+  'sahih al-bukhari': 'bukhari',
+  'muslim': 'muslim',
+  'sahih muslim': 'muslim',
+  'abu dawud': 'abudawud',
+  'abudawud': 'abudawud',
+  'abi dawud': 'abudawud',
+  'tirmidhi': 'tirmidhi',
+  'at-tirmidhi': 'tirmidhi',
+  'jami at-tirmidhi': 'tirmidhi',
+  'nasai': 'nasai',
+  'an-nasai': 'nasai',
+  "sunan an-nasa'i": 'nasai',
+  'ibn majah': 'ibnmajah',
+  'ibnmajah': 'ibnmajah',
+  'sunan ibn majah': 'ibnmajah',
+  'malik': 'malik',
+  'muwatta malik': 'malik',
+  'ahmad': 'ahmad',
+  'musnad ahmad': 'ahmad',
+  'nawawi': 'nawawi40',
+  'riyad as-salihin': 'riyadussalihin',
+  'riyad us-saliheen': 'riyadussalihin',
+  'bulugh al-maram': 'bulugh',
+  'hisn al-muslim': 'hisn',
+}
+
+/**
+ * Build a sunnah.com URL for a hadith dua.
+ * Prefers an explicit `sunnahRef` (e.g. "abudawud:5095"); otherwise attempts
+ * to parse the free-text `reference` (e.g. "Abu Dawud 5095") into a slug:number.
+ * Returns null if neither yields a confident collection + number.
+ */
+export function sunnahComUrl(sunnahRef: string | undefined, reference: string): string | null {
+  // 1. Explicit structured ref wins: "slug:number"
+  if (sunnahRef) {
+    const m = sunnahRef.match(/^\s*([a-z0-9]+)\s*:\s*(\d+[a-z]?)\s*$/i)
+    if (m) return `https://sunnah.com/${m[1].toLowerCase()}:${m[2]}`
+  }
+  // 2. Fallback: parse free-text reference like "Abu Dawud 5095"
+  if (reference) {
+    // Take only the first collection reference (before any comma)
+    const first = reference.split(',')[0].trim()
+    const nameMatch = first.match(/^(.*?)\s+(\d+[a-z]?)/)
+    if (nameMatch) {
+      const name = nameMatch[1].toLowerCase().replace(/\./g, '').trim()
+      const num = nameMatch[2]
+      const slug = SUNNAH_COLLECTION_SLUGS[name]
+      if (slug) return `https://sunnah.com/${slug}:${num}`
+    }
+  }
+  return null
 }
 
 /** Human-readable authenticity label for badges. */
@@ -143,6 +200,7 @@ export function useDuas() {
               source_type: ((meta.source_type as string) || 'general') as SourceType,
               reference: (meta.reference as string) || '',
               grading: ((meta.grading as string) || '') as Grading,
+              sunnah_ref: (meta.sunnah_ref as string) || undefined,
               occasion: (meta.occasion as string) || '',
               tags: (meta.tags as string[]) || [],
               based_on: (meta.based_on as string) || undefined,
@@ -183,6 +241,7 @@ export interface DuaPayload {
   source_type: string
   reference: string
   grading: string
+  sunnah_ref: string
   occasion: string
   tags: string
   arabic: string
@@ -200,7 +259,7 @@ category: ${dua.category}
 source_type: ${dua.source_type}
 reference: "${dua.reference.replace(/"/g, "'")}"
 grading: ${dua.grading}
-occasion: "${dua.occasion.replace(/"/g, "'")}"
+occasion: "${dua.occasion.replace(/"/g, "'")}"${dua.sunnah_ref ? `\nsunnah_ref: "${dua.sunnah_ref.replace(/"/g, "'")}"` : ''}
 tags: [${dua.tags.split(',').map(t => t.trim()).filter(Boolean).join(', ')}]${basedOn ? `\nbased_on: ${basedOn}` : ''}
 created: ${new Date().toISOString().split('T')[0]}
 ---`

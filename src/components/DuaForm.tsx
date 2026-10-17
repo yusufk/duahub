@@ -31,6 +31,7 @@ export interface DuaFormData {
   source_type: string
   reference: string
   grading: string
+  sunnah_ref: string
   occasion: string
   tags: string
   arabic: string
@@ -46,6 +47,7 @@ export const EMPTY_FORM: DuaFormData = {
   source_type: 'hadith',
   reference: '',
   grading: 'sahih',
+  sunnah_ref: '',
   occasion: '',
   tags: '',
   arabic: '',
@@ -117,6 +119,12 @@ export default function DuaForm({ form, setForm, onSubmit, submitting, error, su
             <label htmlFor="reference">Reference</label>
             <input id="reference" required value={form.reference} onChange={update('reference')} placeholder={isHadith ? 'e.g. Abu Dawud 5095' : form.source_type === 'quran' ? 'e.g. Al-Baqarah 2:201' : 'e.g. reported by Ibn Umar'} />
           </div>
+          {isHadith && (
+            <div className="field" style={{ marginBottom: 0, marginTop: '1rem' }}>
+              <label htmlFor="sunnah_ref">Sunnah.com link (optional)</label>
+              <input id="sunnah_ref" value={form.sunnah_ref} onChange={update('sunnah_ref')} placeholder="e.g. abudawud:5095 — collection-slug:number" />
+            </div>
+          )}
         </fieldset>
 
         <div className="field">

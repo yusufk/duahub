@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { fetchDuaContent, useDuas, quranComUrl, type SourceType, type Grading } from '../hooks/useDuas'
+import { fetchDuaContent, useDuas, quranComUrl, sunnahComUrl, type SourceType, type Grading } from '../hooks/useDuas'
 import { useAuth } from '../hooks/useAuth'
 import { isFavourite, toggleFavourite } from '../hooks/useFavourites'
 import AuthenticityBadge from '../components/AuthenticityBadge'
@@ -94,6 +94,16 @@ export default function Dua() {
             style={{ marginLeft: '0.75rem', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}
           >
             Read on Quran.com ↗
+          </a>
+        )}
+        {sourceType === 'hadith' && sunnahComUrl(meta.sunnah_ref as string | undefined, String(meta.reference || '')) && (
+          <a
+            href={sunnahComUrl(meta.sunnah_ref as string | undefined, String(meta.reference || ''))!}
+            target="_blank"
+            rel="noreferrer"
+            style={{ marginLeft: '0.75rem', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}
+          >
+            View on Sunnah.com ↗
           </a>
         )}
       </div>

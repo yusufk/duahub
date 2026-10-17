@@ -5,6 +5,7 @@ category: sunnah
 source_type: hadith
 reference: "Collection Name 0000"
 grading: sahih
+sunnah_ref: "collection-slug:0000"
 occasion: "when to recite"
 tags: []
 created: 2026-01-01

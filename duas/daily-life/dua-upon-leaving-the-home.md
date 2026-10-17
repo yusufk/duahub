@@ -5,6 +5,7 @@ category: daily-life
 source_type: hadith
 reference: "Abu Dawud 5095, Tirmidhi 3426"
 grading: sahih
+sunnah_ref: "abudawud:5095"
 occasion: "when leaving the house"
 tags: [home, protection, travel, daily]
 created: 2026-10-17

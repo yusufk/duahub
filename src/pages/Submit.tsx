@@ -30,6 +30,7 @@ export default function Submit() {
           source_type: String(meta.source_type || 'hadith'),
           reference: String(meta.reference || ''),
           grading: String(meta.grading || 'sahih'),
+          sunnah_ref: String(meta.sunnah_ref || ''),
           occasion: String(meta.occasion || ''),
           tags: Array.isArray(meta.tags) ? meta.tags.join(', ') : String(meta.tags || ''),
           arabic: s.arabic,

@@ -5,6 +5,7 @@ category: forgiveness
 source_type: hadith
 reference: "Bukhari 6306"
 grading: sahih
+sunnah_ref: "bukhari:6306"
 occasion: "morning and evening"
 tags: [istighfar, forgiveness, repentance, morning, evening]
 created: 2026-10-17

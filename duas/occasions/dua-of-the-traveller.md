@@ -5,6 +5,7 @@ category: occasions
 source_type: hadith
 reference: "Muslim 1342"
 grading: sahih
+sunnah_ref: "muslim:1342"
 occasion: "at the start of a journey, after settling on your mount/transport"
 tags: [travel, journey, safar, protection, family]
 created: 2026-10-17
