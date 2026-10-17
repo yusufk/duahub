@@ -1,0 +1,7 @@
+name = "duahub-auth"
+main = "worker/index.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://yusuf.kaka.co.za"
+GITHUB_CLIENT_ID = "REPLACE_WITH_DUAHUB_OAUTH_CLIENT_ID"
