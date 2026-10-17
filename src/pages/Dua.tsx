@@ -141,10 +141,24 @@ export default function Dua() {
       )}
 
       {/* Reference */}
-      {sections['reference'] && (
+      {(sections['reference'] || refUrl) && (
         <div className="dua-section">
           <h3>Reference</h3>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{sections['reference']}</ReactMarkdown>
+          {sections['reference'] && (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{sections['reference']}</ReactMarkdown>
+          )}
+          {refUrl && (
+            <p style={{ marginTop: '0.5rem' }}>
+              <a
+                href={refUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="source-link"
+              >
+                {sourceType === 'quran' ? 'Read on Quran.com' : 'Verify on Sunnah.com'} ↗
+              </a>
+            </p>
+          )}
         </div>
       )}
 

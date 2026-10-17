@@ -604,6 +604,24 @@ body {
   color: var(--ink);
 }
 
+.source-link {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  transition: all 0.2s;
+}
+
+.source-link:hover {
+  background: var(--accent);
+  color: var(--cream);
+}
+
 /* ═══════════════════════════════════════
    AUTHENTICITY BADGES (monochrome)
    ═══════════════════════════════════════ */
