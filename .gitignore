@@ -4,3 +4,4 @@ dist
 .env.local
 .wrangler
 *.tsbuildinfo
+public/duas-index.json

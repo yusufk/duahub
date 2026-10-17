@@ -182,53 +182,28 @@ export function useDuas() {
   async function fetchDuaIndex() {
     try {
       setLoading(true)
-      const token = localStorage.getItem('duahub_gh_token')
-      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
 
-      const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DUAS_PATH}`, { headers })
-      if (!res.ok) throw new Error('Failed to fetch duas')
-      const categories: DuaFile[] = await res.json()
+      // 1. Prefer the static build-time index — zero GitHub API calls, served
+      //    from our own Pages host. Robust against the 60/hr unauthenticated cap.
+      try {
+        const idxRes = await fetch(`${import.meta.env.BASE_URL}duas-index.json`, { cache: 'no-cache' })
+        if (idxRes.ok) {
+          const data = await idxRes.json()
+          if (Array.isArray(data?.duas)) {
+            setDuas(data.duas as DuaMeta[])
+            setError(null)
+            return
+          }
+        }
+      } catch {
+        // fall through to live API
+      }
 
-      const allDuas: DuaMeta[] = []
-
-      const catPromises = categories.filter(c => c.type === 'dir').map(async (cat) => {
-        const catRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cat.path}`, { headers })
-        if (!catRes.ok) return []
-        const files: DuaFile[] = await catRes.json()
-
-        const duaPromises = files
-          .filter(f => f.name.endsWith('.md') && f.name !== '_template.md')
-          .map(async (file) => {
-            const fileRes = await fetch(file.download_url)
-            const content = await fileRes.text()
-            const { meta, body } = parseFrontmatter(content)
-            const translation = extractSection(body, 'Translation')
-
-            return {
-              title: (meta.title as string) || file.name.replace('.md', ''),
-              author: (meta.author as string) || 'unknown',
-              category: cat.name,
-              source_type: ((meta.source_type as string) || 'general') as SourceType,
-              reference: (meta.reference as string) || '',
-              grading: ((meta.grading as string) || '') as Grading,
-              sunnah_ref: (meta.sunnah_ref as string) || undefined,
-              occasion: (meta.occasion as string) || '',
-              tags: (meta.tags as string[]) || [],
-              based_on: (meta.based_on as string) || undefined,
-              created: (meta.created as string) || '',
-              slug: file.name.replace('.md', ''),
-              path: file.path,
-              translation,
-            } as DuaMeta
-          })
-
-        return Promise.all(duaPromises)
-      })
-
-      const results = await Promise.all(catPromises)
-      for (const batch of results) allDuas.push(...batch)
-
-      setDuas(allDuas)
+      // 2. Fallback: live GitHub contents API (used if the static index is
+      //    missing, e.g. a freshly-submitted dua not yet in a build).
+      const live = await fetchDuaIndexFromGitHub()
+      setDuas(live)
+      setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -237,6 +212,56 @@ export function useDuas() {
   }
 
   return { duas, loading, error, refetch: fetchDuaIndex }
+}
+
+/** Live GitHub contents API path (fallback only — rate-limited to 60/hr unauthenticated). */
+async function fetchDuaIndexFromGitHub(): Promise<DuaMeta[]> {
+  const token = localStorage.getItem('duahub_gh_token')
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DUAS_PATH}`, { headers })
+  if (!res.ok) throw new Error('Failed to fetch duas')
+  const categories: DuaFile[] = await res.json()
+
+  const allDuas: DuaMeta[] = []
+
+  const catPromises = categories.filter(c => c.type === 'dir').map(async (cat) => {
+    const catRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cat.path}`, { headers })
+    if (!catRes.ok) return []
+    const files: DuaFile[] = await catRes.json()
+
+    const duaPromises = files
+      .filter(f => f.name.endsWith('.md') && f.name !== '_template.md')
+      .map(async (file) => {
+        const fileRes = await fetch(file.download_url)
+        const content = await fileRes.text()
+        const { meta, body } = parseFrontmatter(content)
+        const translation = extractSection(body, 'Translation')
+
+        return {
+          title: (meta.title as string) || file.name.replace('.md', ''),
+          author: (meta.author as string) || 'unknown',
+          category: cat.name,
+          source_type: ((meta.source_type as string) || 'general') as SourceType,
+          reference: (meta.reference as string) || '',
+          grading: ((meta.grading as string) || '') as Grading,
+          sunnah_ref: (meta.sunnah_ref as string) || undefined,
+          occasion: (meta.occasion as string) || '',
+          tags: (meta.tags as string[]) || [],
+          based_on: (meta.based_on as string) || undefined,
+          created: (meta.created as string) || '',
+          slug: file.name.replace('.md', ''),
+          path: file.path,
+          translation,
+        } as DuaMeta
+      })
+
+    return Promise.all(duaPromises)
+  })
+
+  const results = await Promise.all(catPromises)
+  for (const batch of results) allDuas.push(...batch)
+  return allDuas
 }
 
 export async function fetchDuaContent(path: string): Promise<{ meta: Record<string, unknown>; body: string }> {
