@@ -53,7 +53,18 @@ export function quranComUrl(reference: string): string | null {
   return `https://quran.com/${surah}/${ayah}`
 }
 
-/** Map common English hadith collection names to sunnah.com slugs. */
+/**
+ * Resolve the best external reference URL for a dua, based on its source type.
+ * Qur'an → quran.com; hadith → sunnah.com (explicit sunnah_ref or parsed reference).
+ * Returns null when no confident link can be built.
+ */
+export function referenceUrl(
+  meta: Pick<DuaMeta, 'source_type' | 'reference' | 'sunnah_ref'>
+): string | null {
+  if (meta.source_type === 'quran') return quranComUrl(meta.reference)
+  if (meta.source_type === 'hadith') return sunnahComUrl(meta.sunnah_ref, meta.reference)
+  return null
+}
 const SUNNAH_COLLECTION_SLUGS: Record<string, string> = {
   'bukhari': 'bukhari',
   'sahih al-bukhari': 'bukhari',

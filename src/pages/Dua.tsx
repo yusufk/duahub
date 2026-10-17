@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { fetchDuaContent, useDuas, quranComUrl, sunnahComUrl, type SourceType, type Grading } from '../hooks/useDuas'
+import { fetchDuaContent, useDuas, referenceUrl, type SourceType, type Grading } from '../hooks/useDuas'
 import { useAuth } from '../hooks/useAuth'
 import { isFavourite, toggleFavourite } from '../hooks/useFavourites'
 import AuthenticityBadge from '../components/AuthenticityBadge'
@@ -64,6 +64,11 @@ export default function Dua() {
 
   const sourceType = (meta.source_type as SourceType) || 'general'
   const grading = (meta.grading as Grading) || ''
+  const refUrl = referenceUrl({
+    source_type: sourceType,
+    reference: String(meta.reference || ''),
+    sunnah_ref: meta.sunnah_ref as string | undefined,
+  })
 
   return (
     <article className="recipe-page">
@@ -85,27 +90,21 @@ export default function Dua() {
       {/* Authenticity badge — prominent, right under the title */}
       <div style={{ margin: '0.5rem 0 1rem' }}>
         <AuthenticityBadge source_type={sourceType} grading={grading} />
-        {meta.reference ? <span style={{ marginLeft: '0.75rem', color: 'var(--ink-light)', fontSize: '0.9rem' }}>{String(meta.reference)}</span> : null}
-        {sourceType === 'quran' && quranComUrl(String(meta.reference || '')) && (
-          <a
-            href={quranComUrl(String(meta.reference))!}
-            target="_blank"
-            rel="noreferrer"
-            style={{ marginLeft: '0.75rem', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}
-          >
-            Read on Quran.com ↗
-          </a>
-        )}
-        {sourceType === 'hadith' && sunnahComUrl(meta.sunnah_ref as string | undefined, String(meta.reference || '')) && (
-          <a
-            href={sunnahComUrl(meta.sunnah_ref as string | undefined, String(meta.reference || ''))!}
-            target="_blank"
-            rel="noreferrer"
-            style={{ marginLeft: '0.75rem', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}
-          >
-            View on Sunnah.com ↗
-          </a>
-        )}
+        {meta.reference ? (
+          refUrl ? (
+            <a
+              href={refUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ marginLeft: '0.75rem', color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 600 }}
+              title={sourceType === 'quran' ? 'Read on Quran.com' : 'Verify on Sunnah.com'}
+            >
+              {String(meta.reference)} ↗
+            </a>
+          ) : (
+            <span style={{ marginLeft: '0.75rem', color: 'var(--ink-light)', fontSize: '0.9rem' }}>{String(meta.reference)}</span>
+          )
+        ) : null}
       </div>
 
       {original && (
